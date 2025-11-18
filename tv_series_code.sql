@@ -1,10 +1,4 @@
--- ============================================
--- CS4416 Project - tv_series_code.sql
--- This file contains all required SQL definitions
--- for the two views, trigger, stored procedure, and stored function.
--- ============================================
-
--- ---------- Task 2.1: top_series_cast ----------
+--Task 2.1
 CREATE OR REPLACE VIEW top_series_cast (series_id, series_title, `cast`) AS
 SELECT
     s.series_id,
@@ -20,7 +14,7 @@ JOIN actors AS a
 WHERE s.rating >= 4.00
 GROUP BY s.series_id, s.series_title;
 
--- ---------- Task 2.2: actor_minutes ----------
+--Task 2.2
 CREATE OR REPLACE VIEW actor_minutes (actor_id, actor_name, total_minutes_played) AS
 SELECT
     a.actor_id,
@@ -33,7 +27,7 @@ LEFT JOIN user_history AS uh
   ON uh.episode_id = ae.episode_id
 GROUP BY a.actor_id, a.actor_name;
 
--- ---------- Task 2.3: Trigger AdjustRating ----------
+--Task 2.3
 DELIMITER $$
 CREATE TRIGGER AdjustRating
 BEFORE INSERT ON user_history
@@ -67,7 +61,7 @@ BEGIN
 END$$
 DELIMITER ;
 
--- ---------- Task 2.4: Stored Procedure AddEpisode ----------
+--Task 2.4
 DELIMITER $$
 CREATE PROCEDURE AddEpisode(
   IN s_id INT,
@@ -104,8 +98,7 @@ BEGIN
 END$$
 DELIMITER ;
 
--- ---------- Task 2.5: Stored Function GetEpisodeList ----------
-DELIMITER $$
+--Task 2.5
 CREATE FUNCTION GetEpisodeList(
   s_id INT,
   s_number TINYINT
