@@ -1,4 +1,4 @@
---Task 2.1
+-- Task 2.1: View showing cast for series with rating 4.0 or higher
 CREATE OR REPLACE VIEW top_series_cast (series_id, series_title, `cast`) AS
 SELECT
     s.series_id,
@@ -14,7 +14,7 @@ JOIN actors AS a
 WHERE s.rating >= 4.00
 GROUP BY s.series_id, s.series_title;
 
---Task 2.2
+-- Task 2.2: View calculating total minutes played per actor
 CREATE OR REPLACE VIEW actor_minutes (actor_id, actor_name, total_minutes_played) AS
 SELECT
     a.actor_id,
@@ -27,7 +27,7 @@ LEFT JOIN user_history AS uh
   ON uh.episode_id = ae.episode_id
 GROUP BY a.actor_id, a.actor_name;
 
---Task 2.3
+-- Task 2.3: Trigger preventing invalid minutes and adjusting series rating
 DELIMITER $$
 CREATE TRIGGER AdjustRating
 BEFORE INSERT ON user_history
@@ -36,32 +36,28 @@ BEGIN
   DECLARE ep_len REAL;
   DECLARE sid INT;
 
-  -- Get the episode length and related series ID
   SELECT e.episode_length, e.series_id
     INTO ep_len, sid
   FROM episodes AS e
   WHERE e.episode_id = NEW.episode_id;
 
-  -- Ensure minutes_played does not exceed episode length
   IF ep_len IS NOT NULL THEN
     IF NEW.minutes_played > ep_len THEN
       SET NEW.minutes_played = ep_len;
     END IF;
   END IF;
 
-  -- Prevent negative minutes
   IF NEW.minutes_played < 0 THEN
     SET NEW.minutes_played = 0;
   END IF;
 
-  -- Increase the series rating (max 5.00)
   UPDATE series AS s
   SET s.rating = LEAST(5.00, s.rating + (0.0001 * NEW.minutes_played))
   WHERE s.series_id = sid AND s.rating < 5.00;
 END$$
 DELIMITER ;
 
---Task 2.4
+-- Task 2.4: Procedure to add a new episode if it doesn't already exist
 DELIMITER $$
 CREATE PROCEDURE AddEpisode(
   IN s_id INT,
@@ -74,20 +70,18 @@ BEGIN
   DECLARE series_exists INT DEFAULT 0;
   DECLARE ep_exists INT DEFAULT 0;
 
-  -- Check if the series exists
   SELECT COUNT(*) INTO series_exists
   FROM series
   WHERE series_id = s_id;
 
   IF series_exists = 1 THEN
-    -- Check if the episode already exists in that season
+
     SELECT COUNT(*) INTO ep_exists
     FROM episodes
     WHERE series_id = s_id
       AND season_number = s_number
       AND episode_number = e_number;
 
-    -- If not, insert the new episode
     IF ep_exists = 0 THEN
       INSERT INTO episodes
         (series_id, season_number, episode_number, episode_title, episode_length, date_of_release)
@@ -98,7 +92,8 @@ BEGIN
 END$$
 DELIMITER ;
 
---Task 2.5
+-- Task 2.5: Function returning episode titles for a given series and season
+DELIMITER $$
 CREATE FUNCTION GetEpisodeList(
   s_id INT,
   s_number TINYINT
@@ -108,7 +103,6 @@ READS SQL DATA
 BEGIN
   DECLARE titles TEXT;
 
-  -- Build a comma-separated list of episode titles for that series & season
   SELECT GROUP_CONCAT(e.episode_title ORDER BY e.episode_number SEPARATOR ', ')
     INTO titles
   FROM episodes AS e
