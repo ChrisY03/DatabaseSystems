@@ -1,4 +1,3 @@
--- Task 2.1: View showing cast for series with rating 4.0 or higher
 CREATE OR REPLACE VIEW top_series_cast (series_id, series_title, `cast`) AS
 SELECT
     s.series_id,
@@ -14,7 +13,7 @@ JOIN actors AS a
 WHERE s.rating >= 4.00
 GROUP BY s.series_id, s.series_title;
 
--- Task 2.2: View calculating total minutes played per actor
+
 CREATE OR REPLACE VIEW actor_minutes (actor_id, actor_name, total_minutes_played) AS
 SELECT
     a.actor_id,
@@ -27,8 +26,8 @@ LEFT JOIN user_history AS uh
   ON uh.episode_id = ae.episode_id
 GROUP BY a.actor_id, a.actor_name;
 
--- Task 2.3: Trigger preventing invalid minutes and adjusting series rating
-DELIMITER $$
+
+DELIMITER //
 CREATE TRIGGER AdjustRating
 BEFORE INSERT ON user_history
 FOR EACH ROW
@@ -54,11 +53,11 @@ BEGIN
   UPDATE series AS s
   SET s.rating = LEAST(5.00, s.rating + (0.0001 * NEW.minutes_played))
   WHERE s.series_id = sid AND s.rating < 5.00;
-END$$
+END//
 DELIMITER ;
 
--- Task 2.4: Procedure to add a new episode if it doesn't already exist
-DELIMITER $$
+
+DELIMITER //
 CREATE PROCEDURE AddEpisode(
   IN s_id INT,
   IN s_number TINYINT,
@@ -89,11 +88,11 @@ BEGIN
         (s_id, s_number, e_number, e_title, e_length, CURRENT_DATE());
     END IF;
   END IF;
-END$$
+END//
 DELIMITER ;
 
--- Task 2.5: Function returning episode titles for a given series and season
-DELIMITER $$
+
+DELIMITER //
 CREATE FUNCTION GetEpisodeList(
   s_id INT,
   s_number TINYINT
@@ -114,5 +113,5 @@ BEGIN
   END IF;
 
   RETURN titles;
-END$$
+END//
 DELIMITER ;
